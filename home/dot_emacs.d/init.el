@@ -73,6 +73,37 @@
 
 (package-initialize)
 
+;; --- Packages compiled by a different Emacs -----------------------------------
+;; Packages are byte-compiled by whichever Emacs installed them, and some bake in
+;; version checks at compile time (marginalia, through compat). Run them under
+;; another major version (apt 29 -> snap 31, or a snap auto-refresh to a new major)
+;; and they fail with errors like "void-function
+;; marginalia--orig-completion-metadata-get". So remember which major version
+;; built ~/.emacs.d/elpa and recompile everything once when it changes.
+(defvar my/elpa-stamp (expand-file-name ".built-with-emacs" package-user-dir)
+  "File holding the Emacs major version that compiled the installed packages.")
+
+(defun my/elpa-built-with ()
+  "Major version recorded in `my/elpa-stamp', or nil."
+  (ignore-errors
+    (with-temp-buffer
+      (insert-file-contents my/elpa-stamp)
+      (string-trim (buffer-string)))))
+
+(defun my/elpa-write-stamp ()
+  (ignore-errors
+    (with-temp-file my/elpa-stamp
+      (insert (number-to-string emacs-major-version) "\n"))))
+
+(when (and (file-directory-p package-user-dir)
+           (not (equal (my/elpa-built-with) (number-to-string emacs-major-version))))
+  (message "Emacs %d: recompiling packages built by another version (once)..."
+           emacs-major-version)
+  (let ((warning-minimum-level :error)
+        (byte-compile-warnings nil))
+    (ignore-errors (package-recompile-all)))
+  (my/elpa-write-stamp))
+
 ;; --- Offline resilience ------------------------------------------------------
 ;; The laptop is expected to run with no connectivity. Two things break a
 ;; disconnected startup:
@@ -485,6 +516,10 @@
 ;; =============================================================================
 
 (load (expand-file-name "private.el" user-emacs-directory) t 'nomessage)
+
+;; A fresh install compiled everything with this Emacs: record that.
+(when (and (file-directory-p package-user-dir) (not (my/elpa-built-with)))
+  (my/elpa-write-stamp))
 
 ;; =============================================================================
 ;; CUSTOM FILE
