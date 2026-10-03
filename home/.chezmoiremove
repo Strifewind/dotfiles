@@ -1,0 +1,2 @@
+# The dots CLI was called "dot" until 2026-10-03 (it hid Graphviz).
+.local/bin/dot

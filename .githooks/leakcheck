@@ -5,7 +5,7 @@
 #   .githooks/leakcheck --staged          what is about to be committed (pre-commit hook)
 #   .githooks/leakcheck --message FILE    a commit message (commit-msg hook)
 #   .githooks/leakcheck --all             every tracked file + all history metadata
-#                                         (`dot doctor`, GitHub Actions)
+#                                         (`dots doctor`, GitHub Actions)
 #
 # The words to block come from a denylist that lives OUTSIDE this repo, because
 # the list is itself the set of names to hide:
@@ -98,7 +98,7 @@ check_author() {   # the identity about to be used for a commit
     if [ "$got" != "$want" ]; then
         echo "BLOCKED  commit author would be: $(printf '%s' "$got" | tr '\t' ' ')" >&2
         echo "         this public repo only accepts: $(printf '%s' "$want" | tr '\t' ' ')" >&2
-        echo "         fix with:  dot fix   (sets the repo-local identity)" >&2
+        echo "         fix with:  dots fix   (sets the repo-local identity)" >&2
         fail=1
     fi
 }

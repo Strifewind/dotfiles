@@ -20,7 +20,7 @@ sh -c "$(curl -fsLS get.chezmoi.io)" -- -b "$HOME/.local/bin"
 ```
 
 Anything machine-specific goes in `~/.bashrc.d/99-local.sh`, which chezmoi never touches.
-After install, `dot help` lists the day-to-day commands.
+After install, `dots help` lists the day-to-day commands.
 
 ## This repo is public
 

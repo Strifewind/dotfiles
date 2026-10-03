@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# dot — one command for both dotfiles repos.
+# dots — one command for both dotfiles repos.
 #
 #   core    public repo, chezmoi's default instance   (~/.local/share/chezmoi)
 #   overlay private repo, a second chezmoi instance    (~/.local/share/chezmoi-private)
@@ -7,7 +7,7 @@
 # This file lives in the PUBLIC core repo: it must never contain a hostname,
 # address or username. Host data is read at run time from ~/.config/homelab/hosts.json.
 #
-# Run `dot help` for the command list.
+# Run `dots help` for the command list.
 set -uo pipefail
 
 CHEZMOI=${CHEZMOI:-chezmoi}
@@ -22,7 +22,7 @@ HOSTS_JSON=$HOME/.config/homelab/hosts.json
 # at a password prompt.
 OVL_SSH='ssh -o ConnectTimeout=5 -o BatchMode=yes'
 
-die()  { echo "dot: $*" >&2; exit 1; }
+die()  { echo "dots: $*" >&2; exit 1; }
 hdr()  { printf '\n== %s\n' "$*"; }
 have_overlay() { [ -d "$OVL_SRC/.git" ]; }
 core() { "$CHEZMOI" --source "$CORE_SRC" "$@"; }
@@ -48,18 +48,20 @@ core_settings_ok() {   # prints problems; returns 1 if any
     local bad=0 f="$CORE_SRC/.git-public-identity"
     [ -d "$CORE_SRC/.git" ] || return 0
     if [ "$(git -C "$CORE_SRC" config core.hooksPath)" != ".githooks" ]; then
-        echo "WARN core clone: leak-guard hooks are not active (core.hooksPath unset) — run: dot fix"; bad=1
+        echo "WARN core clone: leak-guard hooks are not active (core.hooksPath unset) — run: dots fix"; bad=1
     fi
     if [ -r "$f" ] && [ "$(git -C "$CORE_SRC" config user.email)" != "$(git config -f "$f" user.email)" ]; then
-        echo "WARN core clone: commits would use your personal identity, not the public one — run: dot fix"; bad=1
+        echo "WARN core clone: commits would use your personal identity, not the public one — run: dots fix"; bad=1
     fi
     return $bad
 }
 
 collisions() {   # files managed by both instances (directories are expected to be shared)
+    # Byte order on both sides: sort follows the locale, and some comm builds (Ubuntu 26.04)
+    # compare bytes, so en_US order made comm report "not in sorted order".
     have_overlay || return 0
     LC_ALL=C comm -12 <(core managed --exclude=dirs 2>/dev/null | LC_ALL=C sort) \
-             <(ovl  managed --exclude=dirs 2>/dev/null | LC_ALL=C sort)
+                      <(ovl  managed --exclude=dirs 2>/dev/null | LC_ALL=C sort)
 }
 
 # ---------------------------------------------------------------------------
@@ -91,7 +93,7 @@ cmd_apply() {
     core apply "$@" || die "core apply failed"
     if have_overlay; then ovl apply "$@" || die "overlay apply failed"; fi
     if [ "$unit_changed" = 1 ] && command -v systemctl >/dev/null 2>&1; then
-        systemctl --user daemon-reload 2>/dev/null && echo "dot: systemd user units changed — daemon-reload done"
+        systemctl --user daemon-reload 2>/dev/null && echo "dots: systemd user units changed — daemon-reload done"
     fi
     local c; c=$(collisions)
     [ -z "$c" ] || { echo "WARN files managed by BOTH repos (one must give them up):"; printf '  %s\n' $c; }
@@ -104,7 +106,7 @@ cmd_update() {
     if have_overlay; then
         hdr "overlay: pull"
         GIT_SSH_COMMAND="$OVL_SSH" git -C "$OVL_SRC" pull --ff-only \
-            || echo "dot: overlay remote unreachable (offline?) — applying the local copy"
+            || echo "dots: overlay remote unreachable (offline?) — applying the local copy"
     fi
     hdr "apply"
     cmd_apply
@@ -112,7 +114,7 @@ cmd_update() {
 
 cmd_push() {
     need_chezmoi
-    core_settings_ok || die "fix the core clone first (dot fix), then push again"
+    core_settings_ok || die "fix the core clone first (dots fix), then push again"
     local repo src msg var label
     for repo in core overlay; do
         if [ "$repo" = core ]; then src=$CORE_SRC; var=DOT_CORE_MSG; label="core (PUBLIC)"
@@ -139,7 +141,7 @@ cmd_push() {
         if [ -n "$(git -C "$src" log --oneline '@{u}..' 2>/dev/null)" ] || ! git -C "$src" rev-parse '@{u}' >/dev/null 2>&1; then
             if [ "$repo" = overlay ]; then
                 GIT_SSH_COMMAND="$OVL_SSH" git -C "$src" push \
-                    || echo "dot: overlay remote unreachable — committed locally, push again when back online"
+                    || echo "dots: overlay remote unreachable — committed locally, push again when back online"
             else
                 git -C "$src" push || die "core push failed"
             fi
@@ -149,7 +151,7 @@ cmd_push() {
 
 cmd_edit() {
     need_chezmoi
-    [ $# -ge 1 ] || die "usage: dot edit FILE"
+    [ $# -ge 1 ] || die "usage: dots edit FILE"
     if have_overlay && ovl source-path "$1" >/dev/null 2>&1; then ovl edit --apply "$@"
     else core edit --apply "$@"; fi
 }
@@ -158,7 +160,7 @@ cmd_profile() {
     case "${1:-}" in
         --json) [ -r "$PROFILE_JSON" ] && cat "$PROFILE_JSON" || die "no $PROFILE_JSON (core not applied?)" ;;
         "")     [ -r "$PROFILE_FILE" ] && cat "$PROFILE_FILE" || die "no $PROFILE_FILE (core not applied?)" ;;
-        *)      die "usage: dot profile [--json]" ;;
+        *)      die "usage: dots profile [--json]" ;;
     esac
 }
 
@@ -175,11 +177,11 @@ if not args:
     sys.exit(0)
 node = hosts.get(args[0])
 if node is None:
-    sys.exit("dot: no host '%s' in the registry" % args[0])
+    sys.exit("dots: no host '%s' in the registry" % args[0])
 if len(args) > 1:
     for part in args[1].split("."):
         if not isinstance(node, dict) or part not in node:
-            sys.exit("dot: %s has no field '%s'" % (args[0], args[1]))
+            sys.exit("dots: %s has no field '%s'" % (args[0], args[1]))
         node = node[part]
 if isinstance(node, (dict, list)):
     print(json.dumps(node, indent=2))
@@ -208,7 +210,7 @@ cmd_doctor() {
             elif [ "$reg" != "$p" ]; then echo "WARN profile mismatch: this machine says '$p', hosts.yaml says '$reg'"; bad=1
             else echo "OK   hosts.yaml agrees: $m = $reg"; fi
         else
-            echo "WARN overlay installed but $HOSTS_JSON missing — run: dot apply"; bad=1
+            echo "WARN overlay installed but $HOSTS_JSON missing — run: dots apply"; bad=1
         fi
         local c; c=$(collisions)
         if [ -n "$c" ]; then echo "WARN files managed by both repos:"; printf '       %s\n' $c; bad=1
@@ -239,13 +241,13 @@ cmd_inventory() {
 
 cmd_overlay_init() {
     need_chezmoi
-    [ $# -eq 1 ] || die "usage: dot overlay-init URL   (e.g. a bare repo path, or host:path over SSH)"
+    [ $# -eq 1 ] || die "usage: dots overlay-init URL   (e.g. a bare repo path, or host:path over SSH)"
     have_overlay && die "overlay already initialised at $OVL_SRC"
     mkdir -p "$(dirname "$OVL_CFG")"
     GIT_SSH_COMMAND="$OVL_SSH" "$CHEZMOI" init --source "$OVL_SRC" --config-path "$OVL_CFG" \
         --persistent-state "$OVL_STATE" "$1" || die "overlay init failed"
     core_fix
-    echo "dot: overlay cloned. Next: dot diff   then   dot apply"
+    echo "dots: overlay cloned. Next: dots diff   then   dots apply"
 }
 
 cmd_fix() {
@@ -255,21 +257,21 @@ cmd_fix() {
 
 cmd_help() {
     cat <<'EOF'
-dot — manage both dotfiles repos (core = public, overlay = private)
+dots — manage both dotfiles repos (core = public, overlay = private)
 
-  dot status             git + chezmoi status for both repos
-  dot diff               what `dot apply` would change
-  dot apply              apply core, then overlay; reloads systemd user units if they changed
-  dot update             pull both (overlay skips cleanly when offline), then apply
-  dot push               commit + push both, asking a SEPARATE message for each repo
+  dots status             git + chezmoi status for both repos
+  dots diff               what `dots apply` would change
+  dots apply              apply core, then overlay; reloads systemd user units if they changed
+  dots update             pull both (overlay skips cleanly when offline), then apply
+  dots push               commit + push both, asking a SEPARATE message for each repo
                          (non-interactive: set DOT_CORE_MSG / DOT_OVERLAY_MSG)
-  dot edit FILE          edit the source of FILE in whichever repo manages it, then apply
-  dot profile [--json]   this machine's profile
-  dot hosts [NAME [FIELD]]  query the host registry, e.g.  dot hosts mynas lan_ip
-  dot doctor             profile, registry, collisions, leak check, inventory checks
-  dot inventory [ARGS]   run tools/dot-inventory.py (e.g. --raw-backup, --compare)
-  dot overlay-init URL   one time per machine: clone the private overlay
-  dot fix                re-apply the core clone's local git settings (hooks, public identity)
+  dots edit FILE          edit the source of FILE in whichever repo manages it, then apply
+  dots profile [--json]   this machine's profile
+  dots hosts [NAME [FIELD]]  query the host registry, e.g.  dots hosts mynas lan_ip
+  dots doctor             profile, registry, collisions, leak check, inventory checks
+  dots inventory [ARGS]   run tools/dot-inventory.py (e.g. --raw-backup, --compare)
+  dots overlay-init URL   one time per machine: clone the private overlay
+  dots fix                re-apply the core clone's local git settings (hooks, public identity)
 EOF
 }
 
@@ -288,5 +290,5 @@ case "$cmd" in
     overlay-init)  cmd_overlay_init "$@" ;;
     fix)           cmd_fix "$@" ;;
     help|-h|--help) cmd_help ;;
-    *)             die "unknown command '$cmd' — try: dot help" ;;
+    *)             die "unknown command '$cmd' — try: dots help" ;;
 esac

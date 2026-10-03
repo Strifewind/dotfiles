@@ -1,5 +1,5 @@
 # ~/.bashrc — managed by chezmoi (dotfiles core). Do not edit here:
-#   shared changes   → the repo (dot edit ~/.bashrc, or the files in ~/.bashrc.d/)
+#   shared changes   → the repo (dots edit ~/.bashrc, or the files in ~/.bashrc.d/)
 #   this machine only → ~/.bashrc.d/99-local.sh (never touched by chezmoi)
 DOT_BASHRC_LOADED=1
 

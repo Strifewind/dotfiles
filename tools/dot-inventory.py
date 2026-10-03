@@ -1153,7 +1153,7 @@ def main():
     ap.add_argument("--identifiers", default="",
                     help="comma-separated extra words to flag as homelab/personal")
     ap.add_argument("--checks-only", action="store_true",
-                    help="print findings only; write nothing (exit 1 if any WARN) - used by `dot doctor`")
+                    help="print findings only; write nothing (exit 1 if any WARN) - used by `dots doctor`")
     ap.add_argument("--raw-backup", action="store_true",
                     help="also write an UNREDACTED tarball of the config files (local only)")
     ap.add_argument("--compare", nargs="+", metavar="REPORT_JSON",

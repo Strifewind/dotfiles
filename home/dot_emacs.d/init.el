@@ -30,7 +30,7 @@
 ;; =============================================================================
 ;; MACHINE AND PROFILE
 ;;
-;; my/machine  the short hostname, lowercase — the same id hosts.yaml and `dot`
+;; my/machine  the short hostname, lowercase — the same id hosts.yaml and `dots`
 ;;             use. Not WSL_DISTRO_NAME: every stock WSL install is "Ubuntu".
 ;; my/profile  server | workstation | general, chosen when the dotfiles were set
 ;;             up. Read from a file, because an Emacs daemon started by systemd
