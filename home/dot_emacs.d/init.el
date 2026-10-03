@@ -384,12 +384,15 @@
 (global-set-key (kbd "C-c w o") #'delete-other-windows)
 (global-set-key (kbd "C-c w b") #'balance-windows)
 
-;; Window navigation — M-o prefix, then hjkl. No modifier on the second key,
-;; and nothing default is displaced (M-o has been free since Emacs 28).
-(global-set-key (kbd "M-o h") #'windmove-left)
-(global-set-key (kbd "M-o j") #'windmove-down)
-(global-set-key (kbd "M-o k") #'windmove-up)
-(global-set-key (kbd "M-o l") #'windmove-right)
+;; Window navigation — M-o prefix, then hjkl. M-o gets its own prefix map rather
+;; than assuming the key is free: if Emacs or a package has put a command on M-o,
+;; "M-o h" would otherwise fail with "starts with non-prefix key M-o" and stop init.el.
+(define-prefix-command 'my/window-map)
+(global-set-key (kbd "M-o") 'my/window-map)
+(define-key my/window-map (kbd "h") #'windmove-left)
+(define-key my/window-map (kbd "j") #'windmove-down)
+(define-key my/window-map (kbd "k") #'windmove-up)
+(define-key my/window-map (kbd "l") #'windmove-right)
 
 ;; Rehomed structural editing — tmux owns C-M-h and C-M-k at the terminal layer,
 ;; so mark-defun and kill-sexp never reach Emacs.
