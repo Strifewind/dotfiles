@@ -58,8 +58,8 @@ core_settings_ok() {   # prints problems; returns 1 if any
 
 collisions() {   # files managed by both instances (directories are expected to be shared)
     have_overlay || return 0
-    comm -12 <(core managed --exclude=dirs 2>/dev/null | sort) \
-             <(ovl  managed --exclude=dirs 2>/dev/null | sort)
+    LC_ALL=C comm -12 <(core managed --exclude=dirs 2>/dev/null | LC_ALL=C sort) \
+             <(ovl  managed --exclude=dirs 2>/dev/null | LC_ALL=C sort)
 }
 
 # ---------------------------------------------------------------------------
