@@ -1,0 +1,2 @@
+# LF everywhere: a CRLF .bashrc or .tmux.conf fails in confusing ways (WSL edits)
+* text=auto eol=lf

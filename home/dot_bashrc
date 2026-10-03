@@ -1,0 +1,25 @@
+# ~/.bashrc — managed by chezmoi (dotfiles core). Do not edit here:
+#   shared changes   → the repo (dot edit ~/.bashrc, or the files in ~/.bashrc.d/)
+#   this machine only → ~/.bashrc.d/99-local.sh (never touched by chezmoi)
+DOT_BASHRC_LOADED=1
+
+# RHEL-family systems expect ~/.bashrc to pull in the site-wide file. Debian and
+# Ubuntu load /etc/bash.bashrc themselves, so this only acts where it's needed.
+[ -f /etc/bashrc ] && . /etc/bashrc
+
+# 0*-*.sh: environment only. Runs for every shell, including `ssh host command`,
+# so these files must never print anything (that would break scp and rsync).
+for _f in "$HOME"/.bashrc.d/0*.sh; do [ -r "$_f" ] && . "$_f"; done
+
+# Everything else is for interactive shells only.
+case $- in *i*) ;; *) unset _f; return ;; esac
+
+for _f in "$HOME"/.bashrc.d/[1-9]*.sh; do [ -r "$_f" ] && . "$_f"; done
+unset _f
+
+# Legacy per-machine snippets from before the repos existed — move them into
+# ~/.bashrc.d/99-local.sh, then delete ~/.bashrc.local.d.
+if [ -d "$HOME/.bashrc.local.d" ]; then
+    for _f in "$HOME"/.bashrc.local.d/*; do [ -r "$_f" ] && . "$_f"; done
+    unset _f
+fi

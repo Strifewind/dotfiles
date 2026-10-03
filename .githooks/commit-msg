@@ -1,0 +1,3 @@
+#!/usr/bin/env bash
+# Commit messages are public history too.
+exec "$(git rev-parse --show-toplevel)/.githooks/leakcheck" --message "$1"

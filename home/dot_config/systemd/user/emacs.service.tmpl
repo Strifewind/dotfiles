@@ -1,0 +1,17 @@
+# ~/.config/systemd/user/emacs.service — managed by chezmoi (dotfiles core).
+# A copy, not a symlink: change it in the repo (dot edit), not with systemctl edit --full.
+[Unit]
+Description=Emacs daemon (snap build)
+Documentation=info:emacs
+
+[Service]
+Type=simple
+ExecStart=/snap/bin/emacs --fg-daemon
+# systemd user services don't get your shell PATH; ~/.local/bin holds claude, chezmoi, dot.
+Environment=PATH=%h/.local/bin:/snap/bin:/usr/local/bin:/usr/bin:/bin
+# Emacs exits 15 on SIGTERM; a normal `systemctl --user stop emacs` is a clean stop.
+SuccessExitStatus=15
+Restart=on-failure
+
+[Install]
+WantedBy=default.target

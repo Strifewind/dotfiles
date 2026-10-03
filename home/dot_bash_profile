@@ -1,0 +1,5 @@
+# ~/.bash_profile — managed by chezmoi (dotfiles core).
+# Login shells read this INSTEAD of ~/.profile when it exists (RHEL-family servers
+# create one by default), so hand off to ~/.profile, then make sure ~/.bashrc ran.
+[ -f "$HOME/.profile" ] && . "$HOME/.profile"
+[ -z "${DOT_BASHRC_LOADED:-}" ] && [ -f "$HOME/.bashrc" ] && . "$HOME/.bashrc"

@@ -1,0 +1,29 @@
+# Backstop for the local hooks: runs after every push. The denylist is stored as the
+# repository secret DOTFILES_DENYLIST (one word per line) because it is itself the
+# list of names this repo must not contain. LEAKCHECK_QUIET keeps matches out of
+# the (public) log.
+name: leak-check
+on: [push, pull_request]
+permissions:
+  contents: read
+jobs:
+  leakcheck:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Names, private addresses, identity
+        env:
+          DENYLIST: ${{ secrets.DOTFILES_DENYLIST }}
+          LEAKCHECK_QUIET: "1"
+        run: |
+          if [ -z "$DENYLIST" ]; then
+            echo "::warning::DOTFILES_DENYLIST secret is not set - only generic patterns are checked"
+            DENYLIST="__denylist_not_configured__"
+          fi
+          printf '%s\n' "$DENYLIST" > "$RUNNER_TEMP/denylist.txt"
+          DOTFILES_DENYLIST="$RUNNER_TEMP/denylist.txt" .githooks/leakcheck --all
+      - uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

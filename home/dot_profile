@@ -1,0 +1,36 @@
+# ~/.profile — managed by chezmoi (dotfiles core).
+# Environment only, for login shells. bash reaches it through ~/.bash_profile,
+# which then loads ~/.bashrc — so nothing here sources ~/.bashrc itself.
+
+# PATH: personal scripts first; ~/.local/bin ends up ahead of ~/bin (same as 00-env.sh)
+for _d in "$HOME/bin" "$HOME/.local/bin"; do
+    if [ -d "$_d" ]; then
+        case ":$PATH:" in *":$_d:"*) ;; *) PATH="$_d:$PATH" ;; esac
+    fi
+done
+unset _d
+export PATH
+
+# Locale — only where it exists (avoids "setlocale" warnings on shared servers)
+if locale -a 2>/dev/null | grep -qix 'en_US\.utf-\{0,1\}8'; then
+    export LANG="en_US.UTF-8"
+    export LC_ALL="en_US.UTF-8"
+fi
+
+# XDG base directories (the defaults, made explicit)
+export XDG_CONFIG_HOME="$HOME/.config"
+export XDG_DATA_HOME="$HOME/.local/share"
+export XDG_CACHE_HOME="$HOME/.cache"
+export XDG_STATE_HOME="$HOME/.local/state"
+
+# WSL: open URLs and files with Windows
+if [ -n "${WSL_DISTRO_NAME:-}" ]; then
+    if command -v wslview >/dev/null 2>&1; then
+        export BROWSER="wslview"
+    else
+        export BROWSER="/mnt/c/Windows/System32/cmd.exe /c start"
+    fi
+fi
+
+# Rust toolchain, where rustup installed one
+[ -f "$HOME/.cargo/env" ] && . "$HOME/.cargo/env"

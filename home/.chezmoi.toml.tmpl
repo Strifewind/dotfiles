@@ -1,0 +1,22 @@
+{{- /* Asked once per machine at `chezmoi init`; answers are stored in that machine's
+       ~/.config/chezmoi/chezmoi.toml, never in this repo. Prompt text = key, so any
+       answer can be given on the command line: --promptChoice profile=general */ -}}
+{{- $profiles := list "server" "workstation" "general" -}}
+{{- $machine := .chezmoi.hostname | lower -}}
+{{- $isWSL := .chezmoi.kernel.osrelease | lower | contains "microsoft" -}}
+{{- $profile := promptChoiceOnce . "profile" "profile" $profiles (ternary "workstation" "general" $isWSL) -}}
+{{- if not (has $profile $profiles) }}{{ fail (printf "profile %q must be one of %v" $profile $profiles) }}{{ end -}}
+{{- $autoattach := false -}}
+{{- if ne $profile "workstation" -}}
+{{-   $autoattach = promptBoolOnce . "tmux_autoattach" "tmux_autoattach" (eq $profile "server") -}}
+{{- end -}}
+{{- $name := promptStringOnce . "git_name" "git_name" -}}
+{{- $email := promptStringOnce . "git_email" "git_email" -}}
+mode = "symlink"
+
+[data]
+    machine = {{ $machine | quote }}
+    profile = {{ $profile | quote }}
+    tmux_autoattach = {{ $autoattach }}
+    git_name = {{ $name | quote }}
+    git_email = {{ $email | quote }}

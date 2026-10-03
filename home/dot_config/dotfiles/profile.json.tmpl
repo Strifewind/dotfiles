@@ -1,0 +1,1 @@
+{{ dict "machine" .machine "profile" .profile "features" (dict "tmux" (ne .profile "workstation") "tmux_autoattach" .tmux_autoattach "emacs_service" (eq .profile "server")) | toPrettyJson }}

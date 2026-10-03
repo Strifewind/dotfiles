@@ -1,0 +1,14 @@
+{{- /* Paths listed here are not installed. Per-machine Emacs state is never managed. */ -}}
+.emacs.d/custom.el
+.emacs.d/elpa/**
+.emacs.d/eln-cache/**
+**/*~
+**/#*#
+**/.#*
+{{- if eq .profile "workstation" }}
+.tmux.conf
+.bashrc.d/40-tmux.sh
+{{- end }}
+{{- if ne .profile "server" }}
+.config/systemd/user/emacs.service
+{{- end }}
