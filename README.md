@@ -22,6 +22,26 @@ sh -c "$(curl -fsLS get.chezmoi.io)" -- -b "$HOME/.local/bin"
 Anything machine-specific goes in `~/.bashrc.d/99-local.sh`, which chezmoi never touches.
 After install, `dots help` lists the day-to-day commands.
 
+## Portable terminal Org
+
+The `general` profile works with Debian's terminal-only Emacs. Install `emacs-nox`
+with `sudo apt install emacs-nox` and use `emacs -nw` (or the `e` shell command).
+Org capture and agenda use the built-in Org package, so they remain available
+offline even when optional Emacs packages have not been installed.
+
+By default, notes stay in `~/org`. To opt into a device-local directory, create it
+and store its path in an unmanaged local config file:
+
+```sh
+mkdir -p "$HOME/Notes/org" "$HOME/.config/dotfiles"
+printf '%s\n' "$HOME/Notes/org" > "$HOME/.config/dotfiles/org-directory"
+```
+
+Capture with `C-c n` (quick note, task, or journal) and open the agenda with
+`C-c a`. With `EMACS_OFFLINE=1 emacs -nw`, package setup skips network access.
+Removing the local path file restores the `~/org` default; existing profiles and
+notes are otherwise unchanged.
+
 ## This repo is public
 
 `.githooks/leakcheck` runs on every commit (pre-commit and commit-msg) and in CI. It

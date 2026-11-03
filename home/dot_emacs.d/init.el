@@ -61,6 +61,23 @@
   "Non-nil if this machine's id is NAME (case-insensitive). Used by private.el."
   (string= my/machine (downcase name)))
 
+(defvar my/org-directory
+  (let ((config (expand-file-name "~/.config/dotfiles/org-directory")))
+    (if (file-readable-p config)
+        (let ((path (string-trim
+                     (with-temp-buffer
+                       (insert-file-contents config)
+                       (buffer-string)))))
+          (if (string-empty-p path)
+              (expand-file-name "~/org")
+            (expand-file-name path "~")))
+      (expand-file-name "~/org")))
+  "Local Org directory, optionally set in ~/.config/dotfiles/org-directory.")
+
+(defun my/org-file (name)
+  "Return NAME inside `my/org-directory'."
+  (expand-file-name name my/org-directory))
+
 ;; =============================================================================
 ;; PACKAGE MANAGEMENT
 ;; =============================================================================
@@ -133,9 +150,10 @@
       (package-refresh-contents)
       (package-install 'use-package))))
 
-(require 'use-package)
-;; Install missing packages only when online. Offline, use-package falls back to
-;; whatever is already on disk and downgrades a miss to a warning, not an abort.
+(unless (require 'use-package nil t)
+  (defmacro use-package (&rest _args) nil))
+;; Install missing packages only when online. Without use-package, package
+;; declarations are skipped; built-in Org remains available.
 (setq use-package-always-ensure my/online-p)
 (setq use-package-always-demand nil)
 (setq use-package-verbose nil)
@@ -448,47 +466,49 @@
 ;; =============================================================================
 ;; ORG MODE
 ;;
-;; Same paths on every machine. What backs ~/org differs per machine (a network
-;; mount on the server, a local synced folder on a laptop); see private.el.
+;; The default remains ~/org; a local path may be set in
+;; ~/.config/dotfiles/org-directory without adding device settings to this repo.
 ;; =============================================================================
+
+(require 'org)
+(require 'org-capture)
+(require 'org-agenda)
 
 (global-set-key (kbd "C-c n") #'org-capture)
 (global-set-key (kbd "C-c a") #'org-agenda)
 
-(use-package org
-  :ensure nil
-  :hook (org-mode . visual-line-mode)
-  :config
-  (setq org-directory "~/org"
-        org-default-notes-file "~/org/inbox.org"
-        org-startup-indented t
-        org-startup-folded t
-        org-startup-with-inline-images t
-        org-hide-emphasis-markers t
-        org-pretty-entities t
-        org-ellipsis " ▸"
-        org-src-fontify-natively t
-        org-src-tab-acts-natively t
-        org-confirm-babel-evaluate nil
-        org-return-follows-link t)
+(add-hook 'org-mode-hook #'visual-line-mode)
 
-  ;; Quick note entry without hunting for the right file
-  (setq org-capture-templates
-        '(("n" "Quick note" entry
-           (file+headline "~/org/inbox.org" "Inbox")
-           "* %?\n  %U\n  %a"
-           :empty-lines 1)
-          ("t" "Task" entry
-           (file+headline "~/org/tasks.org" "Tasks")
-           "* TODO %?\n  SCHEDULED: %t\n  %U"
-           :empty-lines 1)
-          ("j" "Journal" entry
-           (file+olp+datetree "~/org/journal.org")
-           "* %?\n  %U"
-           :empty-lines 1)))
+(setq org-directory my/org-directory
+      org-default-notes-file (my/org-file "inbox.org")
+      org-startup-indented t
+      org-startup-folded t
+      org-startup-with-inline-images t
+      org-hide-emphasis-markers t
+      org-pretty-entities t
+      org-ellipsis " ▸"
+      org-src-fontify-natively t
+      org-src-tab-acts-natively t
+      org-confirm-babel-evaluate nil
+      org-return-follows-link t)
 
-  (setq org-agenda-files '("~/org/inbox.org"
-                           "~/org/tasks.org")))
+;; Quick note entry without hunting for the right file
+(setq org-capture-templates
+      `(("n" "Quick note" entry
+         (file+headline ,(my/org-file "inbox.org") "Inbox")
+         "* %?\n  %U\n  %a"
+         :empty-lines 1)
+        ("t" "Task" entry
+         (file+headline ,(my/org-file "tasks.org") "Tasks")
+         "* TODO %?\n  SCHEDULED: %t\n  %U"
+         :empty-lines 1)
+        ("j" "Journal" entry
+         (file+olp+datetree ,(my/org-file "journal.org"))
+         "* %?\n  %U"
+         :empty-lines 1)))
+
+(setq org-agenda-files (list (my/org-file "inbox.org")
+                             (my/org-file "tasks.org")))
 
 ;; =============================================================================
 ;; PROGRAMMING
