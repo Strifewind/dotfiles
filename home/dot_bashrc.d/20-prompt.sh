@@ -28,7 +28,7 @@ workstation)
     _pc_symbol='\[\e[38;5;67m\]'    # slate blue
     _pc_error='\[\e[38;5;167m\]'    # muted red
 
-    _git_branch() {
+    _dots_git_branch() {
         local branch
         branch=$(git symbolic-ref --short HEAD 2>/dev/null) ||
             branch=$(git rev-parse --short HEAD 2>/dev/null)
@@ -40,7 +40,7 @@ workstation)
     _set_ps1() {
         local code=$? err=""
         [ "$code" -ne 0 ] && err="${_pc_error} ✕${code}${_pc_reset}"
-        _ps1_git=$(_git_branch)
+        _ps1_git=$(_dots_git_branch)
         PS1="${_pc_host}\u@\h${_pc_sep} · ${_pc_path}\w${_pc_git}\${_ps1_git}${err}${_pc_reset}\n${_pc_symbol}›${_pc_reset} "
     }
     ;;
