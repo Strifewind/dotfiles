@@ -515,6 +515,14 @@
   (setq-default fill-column 120))
 
 ;; =============================================================================
+;; NASM / make / gdb helpers (design: GUIDE_Emacs_NASM_TRAMP.md)
+;; =============================================================================
+
+(add-to-list 'load-path (expand-file-name "lisp" user-emacs-directory))
+;; Demoted so a fault in these files can never stop the rest of init.el.
+(with-demoted-errors "my-asm: %S" (require 'my-asm nil t))
+
+;; =============================================================================
 ;; PRIVATE — host-specific settings from the private repo, when installed
 ;; =============================================================================
 
