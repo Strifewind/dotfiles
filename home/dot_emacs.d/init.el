@@ -521,6 +521,7 @@
 (add-to-list 'load-path (expand-file-name "lisp" user-emacs-directory))
 ;; Demoted so a fault in these files can never stop the rest of init.el.
 (with-demoted-errors "my-asm: %S" (require 'my-asm nil t))
+(with-demoted-errors "my-tramp: %S" (require 'my-tramp nil t))
 
 ;; =============================================================================
 ;; PRIVATE — host-specific settings from the private repo, when installed
