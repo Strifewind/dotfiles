@@ -59,3 +59,61 @@
   (load (locate-library "my-asm") nil t)
   (should (eq (key-binding (kbd "C-c c")) 'my/compile-project))
   (should (eq (key-binding (kbd "C-c g")) 'gdb)))
+
+;;; --- section-aware indentation in data sections (nasm-mode) ---
+(ignore-errors (package-initialize))
+(require 'nasm-mode nil t)
+
+(defun my-asm-test--indent (text line)
+  "Indentation of 1-based LINE of TEXT after indenting it in a NASM buffer."
+  (with-temp-buffer
+    (insert text)
+    (nasm-mode)
+    (goto-char (point-min))
+    (forward-line (1- line))
+    (indent-according-to-mode)
+    (current-indentation)))
+
+(defun my-asm-test--colon (text)
+  "Type a colon at the end of TEXT in a NASM buffer; return (INDENT LINE)."
+  (with-temp-buffer
+    (insert text)
+    (nasm-mode)
+    (goto-char (point-max))
+    (let ((last-command-event ?:))
+      (call-interactively (key-binding ":")))
+    (list (current-indentation)
+          (buffer-substring (line-beginning-position) (line-end-position)))))
+
+(ert-deftest my-asm-test-data-label-indented-in-data-sections ()
+  (skip-unless (featurep 'nasm-mode))
+  (dolist (sec '(".data" ".bss" ".rodata"))
+    (should (= (my-asm-test--indent (format "section %s\nm: dd 0\n" sec) 2)
+               nasm-basic-offset))))
+
+(ert-deftest my-asm-test-data-colonless-stays-indented ()
+  (skip-unless (featurep 'nasm-mode))
+  (should (= (my-asm-test--indent "section .data\nmsg db 1\n" 2)
+             nasm-basic-offset)))
+
+(ert-deftest my-asm-test-text-label-goes-left ()
+  (skip-unless (featurep 'nasm-mode))
+  (should (= (my-asm-test--indent "section .text\n    main:\n" 2) 0)))
+
+(ert-deftest my-asm-test-text-instruction-indented ()
+  (skip-unless (featurep 'nasm-mode))
+  (should (= (my-asm-test--indent "section .text\nmain:\nmov eax, 0\n" 3)
+             nasm-basic-offset)))
+
+(ert-deftest my-asm-test-section-directive-stays-left ()
+  (skip-unless (featurep 'nasm-mode))
+  (should (= (my-asm-test--indent "section .data\n    section .text\n" 2) 0)))
+
+(ert-deftest my-asm-test-colon-in-data-keeps-indent ()
+  (skip-unless (featurep 'nasm-mode))
+  (should (equal (my-asm-test--colon "section .data\n    m")
+                 (list 4 "    m:"))))
+
+(ert-deftest my-asm-test-colon-in-text-goes-left ()
+  (skip-unless (featurep 'nasm-mode))
+  (should (= (car (my-asm-test--colon "section .text\n    main")) 0)))
