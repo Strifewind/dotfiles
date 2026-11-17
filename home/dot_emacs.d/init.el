@@ -493,6 +493,8 @@
 ;; =============================================================================
 ;; PROGRAMMING
 ;; =============================================================================
+;; treesit-auto has no Assembly/NASM recipe. NASM's .asm mode registration is
+;; loaded below, after these generated tree-sitter mappings.
 (use-package treesit-auto
   :custom
   (treesit-auto-install 'prompt)

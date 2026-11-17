@@ -64,6 +64,10 @@
 (ignore-errors (package-initialize))
 (require 'nasm-mode nil t)
 
+(ert-deftest my-asm-test-asm-files-use-nasm-mode ()
+  (skip-unless (featurep 'nasm-mode))
+  (should (eq (assoc-default "main.asm" auto-mode-alist) 'nasm-mode)))
+
 (defun my-asm-test--indent (text line)
   "Indentation of 1-based LINE of TEXT after indenting it in a NASM buffer."
   (with-temp-buffer
